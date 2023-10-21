@@ -1,0 +1,86 @@
+package Interview.Interview;
+
+import java.io.StringReader;
+import java.time.Duration;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+
+public class WebAutomationTest {
+
+    @SuppressWarnings({ "deprecation", "resource", "unlikely-arg-type" })
+	public static void main(String[] args) {
+       
+    	// Set the path to the Firefox executable
+        FirefoxOptions fo = new FirefoxOptions();
+        fo.setBrowserVersion("115");
+        
+     // Initialize WebDriver
+    	WebDriver driver = new FirefoxDriver();
+    	driver.manage().window().maximize();
+    	
+    	WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));// Set a maximum wait time of 10 seconds
+        
+
+        // Navigate to the URL
+        driver.get("https://testpages.herokuapp.com/styled/tag/dynamic-table.html");
+
+        try {
+            // Click on the Table Data button
+        	   WebElement tableDataButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//details//summary[normalize-space()='Table Data']")));
+               tableDataButton.click();
+
+            // Define the data in JSON format
+            String jsonData = "[{\"name\":\"Bob\",\"age\":20,\"gender\":\"male\"}, " +
+                    "{\"name\":\"George\",\"age\":42,\"gender\":\"male\"}, " +
+                    "{\"name\":\"Sara\",\"age\":42,\"gender\":\"female\"}, " +
+                    "{\"name\":\"Conor\",\"age\":40,\"gender\":\"male\"}, " +
+                    "{\"name\":\"Jennifer\",\"age\":42,\"gender\":\"female\"}]";
+
+            // Find the input text box and enter the data
+            WebElement dataInput = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//textarea[@id='jsondata']")));
+            dataInput.clear();
+            dataInput.sendKeys(jsonData);
+
+            // Click the Refresh Table button
+            WebElement refreshTableButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("refreshtable")));
+            refreshTableButton.click();
+
+            // Wait for the table to load (you may need to use explicit waits for better synchronization)
+
+            // Wait for the table to load
+            WebElement dataTable = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("dynamictable")));
+            
+            // Get the data from the UI table
+            String tableText = dataTable.getText();
+            
+            
+
+            // Parse the table data to compare with the input data
+            
+            JsonReader uiDataArray = new JsonReader(new StringReader(tableText));
+            JsonElement inputDataArray = new JsonParser().parse(jsonData);
+
+            // Assertion: Compare the data entered with the data displayed
+            assert uiDataArray.equals(inputDataArray) : "Data doesn't match";
+
+            System.out.println("Test passed: Data matches the UI table.");
+        } 
+        catch (Exception e) {
+            System.out.println("Test failed: " + e.getMessage());
+        } finally {
+            // Close the browser
+          driver.quit();
+        }
+    }
+}
